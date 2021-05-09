@@ -5,5 +5,9 @@ date: '2021-05-09'
 slug: my-first-blog-post
 categories: []
 tags: []
-description: ''
----
+description: '
+
+
+```{python}
+print("Welcome to my blog post!")
+```

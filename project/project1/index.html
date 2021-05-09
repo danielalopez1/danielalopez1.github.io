@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         December 1, 2020 
+         January 1, 0001 
             &nbsp;&nbsp;
             
           </h4>
@@ -72,8 +72,289 @@
               
 
 
-<div id="test-project-1" class="section level2">
-<h2>Test Project 1</h2>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>As COVID-19 continued into 2021, the new norm of staying indoors was still essential in order to keep yourself and others safe. It has now been a year since the pandemic started and many are trying to get their lives back to normal while still being cautious. In 2020, I spent most of my time indoors streaming shows and movies in order to keep myself sane. My new years resolution was to lose the weight I gained during 2020’s lockdown, which meant it was time to get off the couch and get some excercise and sunlight. In this project I decided to combine three datasets that can help me analyze if I have been more active or if I have continued my 2020 habits of streaming televesion. My first data came from my applewatch which included the number of steps taken in a day and the number of miles walked everyday, starting January 1st 2021 to March 31st 2021. The second data set included the number of movies watched and episodes watched in a day on Netflix, starting January 1st 2021 to March 31st 2021. The third dataset listed if the date was on a weekend or weekday. I expect to get a high number of steps and miles on the days that I do not watch a lot of Netflix and on the weekdays.</p>
+</div>
+<div id="packages" class="section level2">
+<h2>Packages</h2>
+<pre class="r"><code>library(readr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(tidyverse)</code></pre>
+<p>These are the packages needed in this project in order to begin coding.</p>
+</div>
+<div id="merging-and-tidying" class="section level2">
+<h2>Merging and Tidying</h2>
+<pre class="r"><code>health_data &lt;- read_csv(&quot;health_data - Sheet1.csv&quot;)
+netflix_history &lt;- read_csv(&quot;netflix_history - Sheet1.csv&quot;)
+weekend &lt;- read_csv(&quot;weekend - Sheet1.csv&quot;)</code></pre>
+<pre class="r"><code>data &lt;- merge(health_data, netflix_history) %&gt;% merge(weekend)
+glimpse(data)</code></pre>
+<pre><code>## Rows: 90
+## Columns: 6
+## $ Start           &lt;chr&gt; &quot;1-Feb-21&quot;, &quot;1-Jan-21&quot;, &quot;1-Mar-21&quot;, &quot;10-Feb-21&quot;, &quot;10-…
+## $ `Distance (mi)` &lt;dbl&gt; 0.9742257, 0.6715221, 0.4667554, 0.8788821, 0.2188283…
+## $ `Steps (count)` &lt;dbl&gt; 2638.000, 1838.000, 1284.000, 2201.000, 555.000, 2233…
+## $ Episodes        &lt;dbl&gt; 0, 0, 8, 2, 19, 13, 0, 9, 5, 1, 4, 5, 0, 0, 1, 0, 2, …
+## $ Movies          &lt;dbl&gt; 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0,…
+## $ Weekday         &lt;chr&gt; &quot;yes&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;yes&quot;, &quot;yes&quot;…</code></pre>
+<p>All three datasets were merged and the complete dataset was named “data”. The datasets were merged by the common column ‘Start’ which indicates which day the other variables occurred on.</p>
+<pre class="r"><code>untidy &lt;- data %&gt;% pivot_wider(names_from = &quot;Weekday&quot;, values_from = &quot;Start&quot;)
+glimpse(untidy)</code></pre>
+<pre><code>## Rows: 90
+## Columns: 6
+## $ `Distance (mi)` &lt;dbl&gt; 0.9742257, 0.6715221, 0.4667554, 0.8788821, 0.2188283…
+## $ `Steps (count)` &lt;dbl&gt; 2638.000, 1838.000, 1284.000, 2201.000, 555.000, 2233…
+## $ Episodes        &lt;dbl&gt; 0, 0, 8, 2, 19, 13, 0, 9, 5, 1, 4, 5, 0, 0, 1, 0, 2, …
+## $ Movies          &lt;dbl&gt; 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0,…
+## $ yes             &lt;chr&gt; &quot;1-Feb-21&quot;, &quot;1-Jan-21&quot;, &quot;1-Mar-21&quot;, &quot;10-Feb-21&quot;, NA, …
+## $ no              &lt;chr&gt; NA, NA, NA, NA, &quot;10-Jan-21&quot;, NA, NA, NA, NA, NA, NA, …</code></pre>
+<pre class="r"><code>tidy &lt;- untidy %&gt;% pivot_longer(cols = c(&quot;yes&quot;, &quot;no&quot;), names_to = &quot;Weekday&quot;, 
+    values_to = &quot;Start&quot;)
+glimpse(tidy)</code></pre>
+<pre><code>## Rows: 180
+## Columns: 6
+## $ `Distance (mi)` &lt;dbl&gt; 0.9742257, 0.9742257, 0.6715221, 0.6715221, 0.4667554…
+## $ `Steps (count)` &lt;dbl&gt; 2638.000, 2638.000, 1838.000, 1838.000, 1284.000, 128…
+## $ Episodes        &lt;dbl&gt; 0, 0, 0, 0, 8, 8, 2, 2, 19, 19, 13, 13, 0, 0, 9, 9, 5…
+## $ Movies          &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0,…
+## $ Weekday         &lt;chr&gt; &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;yes&quot;, &quot;no&quot;, &quot;…
+## $ Start           &lt;chr&gt; &quot;1-Feb-21&quot;, NA, &quot;1-Jan-21&quot;, NA, &quot;1-Mar-21&quot;, NA, &quot;10-F…</code></pre>
+<p>The datasets were already tidy without having to alter their code. Therefore, I used pivot_wider to make the data untidy and then used pivot_longer to tidy the dataset again.</p>
+</div>
+<div id="wrangling" class="section level2">
+<h2>Wrangling</h2>
+<pre class="r"><code>data %&gt;% summarize_if(is.numeric, list(mean = mean, sd = sd, 
+    min = min, max = max, quantile = quantile))</code></pre>
+<pre><code>##   Distance (mi)_mean Steps (count)_mean Episodes_mean Movies_mean
+## 1              1.293           3091.203      2.644444         0.2
+## 2              1.293           3091.203      2.644444         0.2
+## 3              1.293           3091.203      2.644444         0.2
+## 4              1.293           3091.203      2.644444         0.2
+## 5              1.293           3091.203      2.644444         0.2
+##   Distance (mi)_sd Steps (count)_sd Episodes_sd Movies_sd Distance (mi)_min
+## 1         1.220368         2653.057    3.860812 0.4787624         0.1095415
+## 2         1.220368         2653.057    3.860812 0.4787624         0.1095415
+## 3         1.220368         2653.057    3.860812 0.4787624         0.1095415
+## 4         1.220368         2653.057    3.860812 0.4787624         0.1095415
+## 5         1.220368         2653.057    3.860812 0.4787624         0.1095415
+##   Steps (count)_min Episodes_min Movies_min Distance (mi)_max Steps (count)_max
+## 1               288            0          0          7.994807          16666.73
+## 2               288            0          0          7.994807          16666.73
+## 3               288            0          0          7.994807          16666.73
+## 4               288            0          0          7.994807          16666.73
+## 5               288            0          0          7.994807          16666.73
+##   Episodes_max Movies_max Distance (mi)_quantile Steps (count)_quantile
+## 1           19          2              0.1095415                288.000
+## 2           19          2              0.4974857               1291.250
+## 3           19          2              0.8021509               2073.000
+## 4           19          2              1.6776408               4152.072
+## 5           19          2              7.9948070              16666.734
+##   Episodes_quantile Movies_quantile
+## 1                 0               0
+## 2                 0               0
+## 3                 1               0
+## 4                 4               0
+## 5                19               2</code></pre>
+<pre class="r"><code>data %&gt;% group_by(Weekday) %&gt;% summarize_if(is.numeric, list(ean = mean, 
+    sd = sd, min = min, max = max, quantile = quantile))</code></pre>
+<pre><code>## # A tibble: 10 x 21
+## # Groups:   Weekday [2]
+##    Weekday `Distance (mi)_… `Steps (count)_… Episodes_ean Movies_ean
+##    &lt;chr&gt;              &lt;dbl&gt;            &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;
+##  1 no                  1.20            2870.         2.46      0.269
+##  2 no                  1.20            2870.         2.46      0.269
+##  3 no                  1.20            2870.         2.46      0.269
+##  4 no                  1.20            2870.         2.46      0.269
+##  5 no                  1.20            2870.         2.46      0.269
+##  6 yes                 1.33            3181.         2.72      0.172
+##  7 yes                 1.33            3181.         2.72      0.172
+##  8 yes                 1.33            3181.         2.72      0.172
+##  9 yes                 1.33            3181.         2.72      0.172
+## 10 yes                 1.33            3181.         2.72      0.172
+## # … with 16 more variables: `Distance (mi)_sd` &lt;dbl&gt;, `Steps (count)_sd` &lt;dbl&gt;,
+## #   Episodes_sd &lt;dbl&gt;, Movies_sd &lt;dbl&gt;, `Distance (mi)_min` &lt;dbl&gt;, `Steps
+## #   (count)_min` &lt;dbl&gt;, Episodes_min &lt;dbl&gt;, Movies_min &lt;dbl&gt;, `Distance
+## #   (mi)_max` &lt;dbl&gt;, `Steps (count)_max` &lt;dbl&gt;, Episodes_max &lt;dbl&gt;,
+## #   Movies_max &lt;dbl&gt;, `Distance (mi)_quantile` &lt;dbl&gt;, `Steps
+## #   (count)_quantile` &lt;dbl&gt;, Episodes_quantile &lt;dbl&gt;, Movies_quantile &lt;dbl&gt;</code></pre>
+<pre class="r"><code>data %&gt;% select(Weekday, Episodes, Movies) %&gt;% mutate(episodes_norm = Episodes/mean(Episodes, 
+    na.rm = TRUE))</code></pre>
+<pre><code>##    Weekday Episodes Movies episodes_norm
+## 1      yes        0      0     0.0000000
+## 2      yes        0      0     0.0000000
+## 3      yes        8      0     3.0252101
+## 4      yes        2      0     0.7563025
+## 5       no       19      2     7.1848739
+## 6      yes       13      0     4.9159664
+## 7      yes        0      0     0.0000000
+## 8      yes        9      0     3.4033613
+## 9      yes        5      0     1.8907563
+## 10     yes        1      1     0.3781513
+## 11     yes        4      1     1.5126050
+## 12     yes        5      0     1.8907563
+## 13      no        0      1     0.0000000
+## 14     yes        0      0     0.0000000
+## 15      no        1      0     0.3781513
+## 16      no        0      0     0.0000000
+## 17     yes        2      0     0.7563025
+## 18      no        9      0     3.4033613
+## 19     yes        0      0     0.0000000
+## 20     yes        2      0     0.7563025
+## 21     yes        2      0     0.7563025
+## 22     yes        0      0     0.0000000
+## 23      no        7      0     2.6470588
+## 24     yes        4      1     1.5126050
+## 25     yes       12      0     4.5378151
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 65 rows ]</code></pre>
+<pre class="r"><code>data %&gt;% arrange(Weekday, Episodes, Movies)</code></pre>
+<pre><code>##        Start Distance (mi) Steps (count) Episodes Movies Weekday
+## 1  14-Feb-21     0.7657725      1918.000        0      0      no
+## 2   2-Jan-21     1.0811486      3040.000        0      0      no
+## 3  24-Jan-21     1.6872559      4379.000        0      0      no
+## 4  27-Feb-21     0.6148903      1719.000        0      0      no
+## 5  27-Mar-21     1.8246754      4050.289        0      0      no
+## 6  30-Jan-21     0.4379051      1137.000        0      0      no
+## 7  31-Jan-21     0.3101636       793.000        0      0      no
+## 8   6-Feb-21     0.4204260      1109.000        0      0      no
+## 9   7-Feb-21     0.4248253      1113.000        0      0      no
+## 10  7-Mar-21     0.3427546       871.000        0      0      no
+## 11 13-Feb-21     0.6889795      1827.000        0      1      no
+## 12 20-Mar-21     1.7776940      4876.000        0      1      no
+## 13 20-Feb-21     2.4859384      6281.000        0      2      no
+## 14 13-Mar-21     2.0666522      4477.000        1      0      no
+## 15 17-Jan-21     0.6438006      1842.000        1      0      no
+## 16 21-Feb-21     2.1593149      5075.000        1      0      no
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 74 rows ]</code></pre>
+<pre class="r"><code>filter(data, Episodes &gt; 12)</code></pre>
+<pre><code>##       Start Distance (mi) Steps (count) Episodes Movies Weekday
+## 1 10-Jan-21     0.2188283       555.000       19      2      no
+## 2 10-Mar-21     0.9779432      2233.193       13      0     yes
+## 3 20-Jan-21     0.5178570      1313.000       14      0     yes</code></pre>
+<p>I used the function summarize() with summarize_if(is.numeric), to get the mean, standard deviation, minimum, maximum and quantile of all numeric variables in “data”. I then I used the function group_by() to group my data by the variable “Weekday” to determine the mean, standard deviation, minimum, maximum and quantile of all numeric variables for both Weekday and Weekend. Then I used the function select() to narrow down the variables I was going to work with to Weekday, Movies and Episodes. Once I did that, I used the function mutate() to have each numberic variable divided by the mean of that same variable. I then used the function arrange() with the variables Movies, Episodes and Weekday to sort my data given those variables. I then used the function filter() to isolate the days that I watched more than 12 episodes.</p>
+</div>
+<div id="visualizing" class="section level2">
+<h2>Visualizing</h2>
+<pre class="r"><code>cormat &lt;- data %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;pair&quot;)
+tidycor &lt;- cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;)
+tidycor %&gt;% ggplot(aes(var1, var2, fill = correlation)) + geom_tile() + 
+    scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, high = &quot;blue&quot;) + 
+    geom_text(aes(label = round(correlation, 2)), color = &quot;black&quot;, 
+        size = 4)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" />
+I created a correltation heatmap by first coding the correlation between all four of my numeric variables. Then I used rownames_to_columns to move my variable titles into their own columns that way they can all come out on the x and y titles of the graph. I then graphed the heatmap by using the function ggplot(). I found that there was a large correlation between distance and steps, but a small correlation between all other variables.</p>
+<pre class="r"><code>ggplot(data, aes(Start)) + geom_bar(aes(y = Episodes, fill = Start), 
+    stat = &quot;summary&quot;, fun.y = &quot;mean&quot;) + theme(axis.text.x = element_text(angle = 100, 
+    hjust = 1)) + ylab(&quot;Episodes&quot;) + ggtitle(&quot;Episodes Watched in 2021&quot;) + 
+    theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
+I used ggplot() and geom_bar() to graph a bar graph showing the number of episodes watched everyday in 2021.</p>
+<pre class="r"><code>ggplot(data, aes(Episodes, Movies)) + geom_point(aes(color = Weekday)) + 
+    xlab(&quot;Episodes&quot;) + ylab(&quot;Movies&quot;) + labs(colour = &quot;Weekday?&quot;) + 
+    theme(axis.text.x = element_text(angle = 50, hjust = 1)) + 
+    ggtitle(&quot;Episodes &amp; Movies watched throughout the week&quot;) + 
+    theme(axis.line = element_line(colour = &quot;black&quot;, size = 0.5, 
+        linetype = &quot;solid&quot;)) + scale_color_manual(values = c(&quot;#E79F00&quot;, 
+    &quot;#58B4E9&quot;))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" />
+I used ggplot() and geom_point() to compare the episodes watched to movies watched based on if it was on a Weekday or not.</p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<pre class="r"><code>wss &lt;- vector()
+for (i in 1:10) {
+    temp &lt;- data %&gt;% dplyr::select(&quot;Movies&quot;, &quot;Episodes&quot;, &quot;Steps (count)&quot;, 
+        &quot;Distance (mi)&quot;) %&gt;% kmeans(., i)
+    wss[i] &lt;- temp$tot.withinss
+}
+
+ggplot() + geom_point(aes(x = 1:10, y = wss)) + geom_path(aes(x = 1:10, 
+    y = wss)) + xlab(&quot;clusters&quot;) + scale_x_continuous(breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>clust_dat &lt;- data %&gt;% dplyr::select(&quot;Movies&quot;, &quot;Episodes&quot;, &quot;Steps (count)&quot;, 
+    &quot;Distance (mi)&quot;)
+kmeans1 &lt;- clust_dat %&gt;% scale %&gt;% kmeans(3)
+kmeansclust &lt;- clust_dat %&gt;% mutate(cluster = as.factor(kmeans1$cluster))
+kmeansclust %&gt;% ggplot(aes(Movies, Episodes, color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pam1 &lt;- clust_dat %&gt;% pam(k = 3)
+pamclust &lt;- clust_dat %&gt;% mutate(cluster = as.factor(pam1$clustering))
+pamclust %&gt;% ggplot(aes(Movies, Episodes, color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pamclust %&gt;% group_by(cluster) %&gt;% summarize_if(is.numeric, mean, 
+    na.rm = T)</code></pre>
+<pre><code>## # A tibble: 3 x 5
+##   cluster Movies Episodes `Steps (count)` `Distance (mi)`
+##   &lt;fct&gt;    &lt;dbl&gt;    &lt;dbl&gt;           &lt;dbl&gt;           &lt;dbl&gt;
+## 1 1        0.148     2.63           1507.           0.587
+## 2 2        0.273     2.55           8712.           3.82 
+## 3 3        0.28      2.72           4040.           1.70</code></pre>
+<p>I used ggplot() to determine the number of clusters that would work best with my data. I found that 3 clusters would work best by looking at the line graph. I used k means clustering and then PAM clustering.</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.6.1 (2019-07-05)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Ubuntu 18.04.5 LTS
+## 
+## Matrix products: default
+## BLAS:   /stor/system/opt/R/R-3.6.1/lib/R/lib/libRblas.so
+## LAPACK: /stor/system/opt/R/R-3.6.1/lib/R/lib/libRlapack.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] forcats_0.5.0   stringr_1.4.0   purrr_0.3.4     tibble_3.0.4   
+##  [5] tidyverse_1.3.0 cluster_2.1.0   ggplot2_3.3.3   dplyr_1.0.2    
+##  [9] tidyr_1.1.2     readr_1.4.0    
+## 
+## loaded via a namespace (and not attached):
+##  [1] tidyselect_1.1.0  xfun_0.20         haven_2.3.1       colorspace_2.0-0 
+##  [5] vctrs_0.3.6       generics_0.1.0    htmltools_0.5.0   yaml_2.2.1       
+##  [9] utf8_1.1.4        rlang_0.4.10      pillar_1.4.7      glue_1.4.2       
+## [13] withr_2.3.0       DBI_1.1.0         dbplyr_2.0.0      modelr_0.1.8     
+## [17] readxl_1.3.1      lifecycle_0.2.0   munsell_0.5.0     blogdown_0.20    
+## [21] gtable_0.3.0      cellranger_1.1.0  rvest_0.3.6       evaluate_0.14    
+## [25] labeling_0.4.2    knitr_1.30        fansi_0.4.1       broom_0.7.3      
+## [29] Rcpp_1.0.5        backports_1.2.1   scales_1.1.1      formatR_1.7      
+## [33] jsonlite_1.7.2    farver_2.0.3      fs_1.5.0          hms_0.5.3        
+## [37] digest_0.6.27     stringi_1.5.3     bookdown_0.21     grid_3.6.1       
+## [41] cli_2.2.0         tools_3.6.1       magrittr_2.0.1    crayon_1.3.4     
+## [45] pkgconfig_2.0.3   ellipsis_0.3.1    xml2_1.3.2        reprex_0.3.0     
+## [49] lubridate_1.7.9.2 assertthat_0.2.1  rmarkdown_2.6     httr_1.4.2       
+## [53] rstudioapi_0.13   R6_2.5.0          compiler_3.6.1</code></pre>
+<pre class="r"><code>Sys.time()</code></pre>
+<pre><code>## [1] &quot;2021-05-09 18:03:50 CDT&quot;</code></pre>
+<pre class="r"><code>Sys.info()</code></pre>
+<pre><code>##                                        sysname 
+##                                        &quot;Linux&quot; 
+##                                        release 
+##                           &quot;4.15.0-142-generic&quot; 
+##                                        version 
+## &quot;#146-Ubuntu SMP Tue Apr 13 01:11:19 UTC 2021&quot; 
+##                                       nodename 
+##                   &quot;educcomp01.ccbb.utexas.edu&quot; 
+##                                        machine 
+##                                       &quot;x86_64&quot; 
+##                                          login 
+##                                      &quot;unknown&quot; 
+##                                           user 
+##                                      &quot;dl29746&quot; 
+##                                 effective_user 
+##                                      &quot;dl29746&quot;</code></pre>
 </div>
 
             

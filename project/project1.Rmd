@@ -1,8 +1,118 @@
 ---
 title: "Project 1"
-author: "Me"
-date: "2020-12-01"
+author: "Daniela Lopez"
+date: "4/1/2021"
 output: html_document
 ---
 
-## Test Project 1
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## Introduction
+As COVID-19 continued into 2021, the new norm of staying indoors was still essential in order to keep yourself and others safe. It has now been a year since the pandemic started and many are trying to get their lives back to normal while still being cautious. In 2020, I spent most of my time indoors streaming shows and movies in order to keep myself sane. My new years resolution was to lose the weight I gained during 2020's lockdown, which meant it was time to get off the couch and get some excercise and sunlight. In this project I decided to combine three datasets that can help me analyze if I have been more active or if I have continued my 2020 habits of streaming televesion. My first data came from my applewatch which included the number of steps taken in a day and the number of miles walked everyday, starting January 1st 2021 to March 31st 2021. The second data set included the number of movies watched and episodes watched in a day on Netflix, starting January 1st 2021 to March 31st 2021. The third dataset listed if the date was on a weekend or weekday. I expect to get a high number of steps and miles on the days that I do not watch a lot of Netflix and on the weekdays.
+
+## Packages
+```{r}
+library(readr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(tidyverse)
+```
+These are the packages needed in this project in order to begin coding. 
+
+## Merging and Tidying
+```{r}
+health_data <- read_csv("health_data - Sheet1.csv")
+netflix_history <- read_csv("netflix_history - Sheet1.csv")
+weekend <- read_csv("weekend - Sheet1.csv")
+```
+
+```{r}
+data <- merge(health_data, netflix_history) %>% merge(weekend)
+glimpse(data)
+```
+All three datasets were merged and the complete dataset was named "data". The datasets were merged by the common column 'Start' which indicates which day the other variables occurred on. 
+
+```{r}
+untidy <- data %>% pivot_wider(names_from = "Weekday", values_from = "Start")
+glimpse(untidy)
+tidy <- untidy %>% pivot_longer(cols = c("yes","no"), names_to = "Weekday", values_to = "Start")
+glimpse(tidy)
+```
+The datasets were already tidy without having to alter their code. Therefore, I used pivot_wider to make the data untidy and then used pivot_longer to tidy the dataset again. 
+
+## Wrangling
+```{r}
+data %>% summarize_if(is.numeric, list(mean=mean, sd=sd, min=min, max=max, quantile=quantile))
+
+data %>% group_by(Weekday) %>% summarize_if(is.numeric, list(ean=mean, sd=sd, min=min, max=max, quantile=quantile))
+
+data %>% select(Weekday, Episodes, Movies) %>% mutate(episodes_norm = Episodes / mean(Episodes, na.rm= TRUE))
+
+data %>% arrange(Weekday, Episodes, Movies)
+
+filter(data, Episodes > 12)
+```
+I used the function summarize() with summarize_if(is.numeric), to get the mean, standard deviation, minimum, maximum and quantile of all numeric variables in "data". I then I used the function group_by() to group my data by the variable "Weekday" to determine the mean, standard deviation, minimum, maximum and quantile of all numeric variables for both Weekday and Weekend. Then I used the function select() to narrow down the variables I was going to work with to Weekday, Movies and Episodes. Once I did that, I used the function mutate() to have each numberic variable divided by the mean of that same variable. I then used the function arrange() with the variables Movies, Episodes and Weekday to sort my data given those variables. I then used the function filter() to isolate the days that I watched more than 12 episodes.
+
+## Visualizing
+```{r}
+cormat <- data %>% select_if(is.numeric) %>% cor(use="pair")
+tidycor <- cormat %>% as.data.frame %>% rownames_to_column("var1") %>% pivot_longer(-1, names_to ="var2", values_to ="correlation")
+tidycor %>% ggplot(aes(var1,var2,fill=correlation))+geom_tile()+scale_fill_gradient2(low="red",mid="white",high="blue")+geom_text(aes(label=round(correlation,2)), color="black", size=4) 
+```
+I created a correltation heatmap by first coding the correlation between all four of my numeric variables. Then I used rownames_to_columns to move my variable titles into their own columns that way they can all come out on the x and y titles of the graph. I then graphed the heatmap by using the function ggplot(). I found that there was a large correlation between distance and steps, but a small correlation between all other variables. 
+```{r}
+ggplot(data, aes(Start))+
+  geom_bar(aes(y=Episodes, fill = Start),stat="summary", fun.y="mean") +  
+  theme(axis.text.x = element_text(angle=100, hjust=1))+
+  ylab("Episodes")+
+  ggtitle("Episodes Watched in 2021")+
+  theme(legend.position="none")
+```
+I used ggplot() and geom_bar() to graph a bar graph showing the number of episodes watched everyday in 2021. 
+```{r}
+ggplot(data, aes(Episodes, Movies)) + 
+  geom_point(aes(color = Weekday))+ 
+  xlab("Episodes")+
+  ylab("Movies") + 
+  labs(colour = "Weekday?")+
+  theme(axis.text.x = element_text(angle=50, hjust=1))+
+  ggtitle("Episodes & Movies watched throughout the week")+
+  theme( axis.line = element_line(colour = "black", 
+                      size = 0.5, linetype = "solid"))+
+  scale_color_manual(values=c("#E79F00", "#58B4E9"))
+```
+I used ggplot() and geom_point() to compare the episodes watched to movies watched based on if it was on a Weekday or not. 
+
+## Dimensionality Reduction
+```{r}
+wss<-vector()
+for(i in 1:10){ 
+  temp<-data%>%dplyr::select('Movies', 'Episodes', 'Steps (count)', 'Distance (mi)')%>%
+  kmeans(.,i)
+  wss[i]<-temp$tot.withinss 
+} 
+
+ggplot()+geom_point(aes(x=1:10,y=wss))+geom_path(aes(x=1:10,y=wss))+  xlab("clusters")+scale_x_continuous(breaks=1:10)
+
+clust_dat<-data%>%dplyr::select('Movies', 'Episodes', 'Steps (count)', 'Distance (mi)')
+kmeans1<-clust_dat %>% scale %>%kmeans(3)
+kmeansclust<-clust_dat%>%mutate(cluster=as.factor(kmeans1$cluster))
+kmeansclust%>%ggplot(aes(Movies, Episodes, color=cluster))+geom_point()
+
+pam1<-clust_dat%>%pam(k=3)
+pamclust<-clust_dat%>%mutate(cluster=as.factor(pam1$clustering))
+pamclust%>%ggplot(aes(Movies, Episodes,color=cluster))+geom_point()
+
+pamclust%>%group_by(cluster)%>%summarize_if(is.numeric,mean,na.rm=T)
+```
+I used ggplot() to determine the number of clusters that would work best with my data. I found that 3 clusters would work best by looking at the line graph. I used k means clustering and then PAM clustering. 
+```{r}
+sessionInfo(); Sys.time(); Sys.info()
+```
+

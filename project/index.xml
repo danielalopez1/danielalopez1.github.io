@@ -8,21 +8,21 @@
     <language>en-US</language>
     <lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Project 1</title>
-      <link>/project/project1/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/project/project1/</guid>
-      <description> Test Project 1  </description>
-    </item>
-    
-    <item>
       <title>Project 2</title>
       <link>/project/project2/</link>
       <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
       <description> Test Project 2  </description>
+    </item>
+    
+    <item>
+      <title>Project 1</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Introduction As COVID-19 continued into 2021, the new norm of staying indoors was still essential in order to keep yourself and others safe. It has now been a year since the pandemic started and many are trying to get their lives back to normal while still being cautious. In 2020, I spent most of my time indoors streaming shows and movies in order to keep myself sane. My new years resolution was to lose the weight I gained during 2020’s lockdown, which meant it was time to get off the couch and get some excercise and sunlight.</description>
     </item>
     
   </channel>
