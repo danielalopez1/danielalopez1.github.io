@@ -1,0 +1,9 @@
+---
+title: My First Blog Post
+author: Daniela Lopez
+date: '2021-05-09'
+slug: my-first-blog-post
+categories: []
+tags: []
+description: ''
+---
