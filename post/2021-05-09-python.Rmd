@@ -1,0 +1,14 @@
+---
+title: Python!
+author: Daniela Lopez
+date: '2021-05-09'
+slug: python
+categories: []
+tags: []
+description: ''
+---
+
+
+Below is a photo of my dog, Canela!
+![](/post/2021-05-09-python_files/20C2F142-830B-4053-8AA0-F1DA2E2BD9C4_1_201_a.jpeg)
+
