@@ -72,6 +72,17 @@
               
 
 
+<p>I really enjoyed using R Studio, and the thought of having to learn a whole new system stressed me out. Fortunately, the Reticulate package allows users to use R and Python together.</p>
+<pre class="r"><code>#R code
+library(reticulate)
+mydog &lt;- &quot;say hello to&quot;</code></pre>
+<pre class="python"><code>#Python code
+mydog=&quot;Canela&quot;
+print(r.mydog,mydog)</code></pre>
+<pre><code>## say hello to Canela</code></pre>
+<pre class="r"><code>#R code
+cat(c(mydog,py$mydog))</code></pre>
+<pre><code>## say hello to Canela</code></pre>
 <p>Below is a photo of my dog, Canela!
 <img src="../../../../../post/2021-05-09-python_files/20C2F142-830B-4053-8AA0-F1DA2E2BD9C4_1_201_a.jpeg" /></p>
 

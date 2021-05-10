@@ -13,7 +13,8 @@
       <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/2021/05/09/python/</guid>
-      <description> Below is a photo of my dog, Canela! </description>
+      <description> I really enjoyed using R Studio, and the thought of having to learn a whole new system stressed me out. Fortunately, the Reticulate package allows users to use R and Python together.
+#R code library(reticulate) mydog &amp;lt;- &amp;quot;say hello to&amp;quot; #Python code mydog=&amp;quot;Canela&amp;quot; print(r.mydog,mydog) ## say hello to Canela #R code cat(c(mydog,py$mydog)) ## say hello to Canela Below is a photo of my dog, Canela! </description>
     </item>
     
     <item>
